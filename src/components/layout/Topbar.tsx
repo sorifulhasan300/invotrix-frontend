@@ -92,7 +92,7 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
             type="button"
             onClick={() => setDropdownOpen((prev) => !prev)}
             disabled={isLoading}
-            className="inline-flex items-center mt-2 gap-2 h-8 pl-2 pr-1.5 rounded-md border border-brand-border hover:bg-brand-surface transition-colors disabled:opacity-70"
+            className="inline-flex items-center gap-2 h-8 pl-2 pr-1.5 rounded-md border border-brand-border hover:bg-brand-surface transition-colors disabled:opacity-70"
           >
             {isLoading ? (
               <div className="h-8 w-8 flex items-center justify-center">

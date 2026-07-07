@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../features/auth/authStore";
 
@@ -16,18 +17,27 @@ const LoadingSpinner = () => (
 );
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { user, isLoading, token } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const token = useAuthStore((state) => state.token);
+  const fetchCurrentUser = useAuthStore((state) => state.fetchCurrentUser);
   const location = useLocation();
+
+  // ✅ Hook ALWAYS called first, no early return before this.
+  useEffect(() => {
+    if (token && !user && !isLoading) {
+      fetchCurrentUser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, !!user, isLoading]);
+
+  // ---- All conditional returns happen AFTER hooks ----
 
   if (!token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (isLoading && !user) {
-    return <LoadingSpinner />;
-  }
-
-  if (token && !user && !isLoading) {
+  if (isLoading || (token && !user)) {
     return <LoadingSpinner />;
   }
 

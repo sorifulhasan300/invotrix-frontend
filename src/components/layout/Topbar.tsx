@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Sun, Moon, ChevronDown } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "@/contexts/ThemeProvider";
 import { useAuthStore } from "@/features/auth/authStore";
 
@@ -18,7 +19,7 @@ const LOCATION_HIERARCHY: Record<string, { parent: string; label: string }> = {
 const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isLoading } = useAuthStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -90,30 +91,56 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
           <button
             type="button"
             onClick={() => setDropdownOpen((prev) => !prev)}
-            className="inline-flex items-center gap-2 h-8 pl-2 pr-1.5 rounded-md border border-brand-border hover:bg-brand-surface transition-colors"
+            disabled={isLoading}
+            className="inline-flex items-center gap-2 h-8 pl-2 pr-1.5 rounded-md border border-brand-border hover:bg-brand-surface transition-colors disabled:opacity-70"
           >
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-brand-accent text-[10px] font-medium text-brand-bg">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
-            </div>
+            {isLoading ? (
+              <div className="h-8 w-8 flex items-center justify-center">
+                <div className="w-4 h-4 border-2 border-brand-accent border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              <Avatar className="h-8 w-8">
+                {user?.profileImage ? (
+                  <AvatarImage src={user.profileImage} alt={user.name} />
+                ) : null}
+                <AvatarFallback className="bg-brand-accent text-[10px] font-medium text-brand-bg">
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+            )}
             <span className="text-[12px] font-medium text-brand-text hidden sm:block max-w-[100px] truncate">
-              {user?.name || "User"}
+              {isLoading ? "Loading..." : (user?.name || "User")}
             </span>
-            <ChevronDown
-              size={12}
-              className="text-brand-text-muted hidden sm:block"
-            />
+            {!isLoading && (
+              <ChevronDown
+                size={12}
+                className="text-brand-text-muted hidden sm:block"
+              />
+            )}
           </button>
 
-          {dropdownOpen && (
+          {dropdownOpen && user && (
             <div className="absolute right-0 mt-2 w-56 rounded-[6px] border border-brand-border bg-brand-bg shadow-lg py-1.5 z-50">
               <div className="px-3 py-2  ">
-                <p className="text-[13px] font-medium text-brand-text truncate">
-                  {user?.name || "User"}
-                </p>
-                <p className="text-[11px] text-brand-text-muted mt-0.5 truncate">
-                  {user?.email || "user@company.com"}
-                </p>
-                <span className="mt-1.5 inline-block px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-brand-accent/10 text-brand-accent">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-9 w-9">
+                    {user?.profileImage ? (
+                      <AvatarImage src={user.profileImage} alt={user.name} />
+                    ) : null}
+                    <AvatarFallback className="bg-brand-accent text-[10px] font-medium text-brand-bg">
+                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium text-brand-text truncate">
+                      {user?.name || "User"}
+                    </p>
+                    <p className="text-[11px] text-brand-text-muted mt-0.5 truncate">
+                      {user?.email || "user@company.com"}
+                    </p>
+                  </div>
+                </div>
+                <span className="mt-2 inline-block px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-brand-accent/10 text-brand-accent">
                   {user?.role || "User"}
                 </span>
               </div>

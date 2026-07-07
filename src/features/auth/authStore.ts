@@ -8,12 +8,14 @@ interface User {
   email: string;
   name: string;
   role: "Admin" | "Manager" | "Employee";
+  profileImage?: string;
 }
 
 interface AuthState {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  isCheckingAuth: boolean;
   isAuthenticated: boolean;
   setAuth: (user: User, token: string) => void;
   fetchCurrentUser: () => Promise<void>;
@@ -45,6 +47,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isLoading: false,
+      isCheckingAuth: true,
       isAuthenticated: false,
 
       setAuth: (user, token) => {
@@ -53,30 +56,37 @@ export const useAuthStore = create<AuthState>()(
           token,
           isAuthenticated: true,
           isLoading: false,
+          isCheckingAuth: false,
         });
       },
 
       fetchCurrentUser: async () => {
         const currentToken = get().token;
         const currentUser = get().user;
+        const currentLoading = get().isLoading;
 
+        // 1. Guard: If no token exists, clean up state and stop checking auth
         if (!currentToken) {
           set({
             user: null,
             token: null,
             isAuthenticated: false,
             isLoading: false,
+            isCheckingAuth: false,
           });
           return;
         }
 
-        if (currentUser) {
-          set({ isLoading: false, isAuthenticated: true });
+        // 2. Guard: If already loading, or if the user is already fetched, do not repeat the call
+        if (currentLoading || currentUser) {
+          if (get().isCheckingAuth) {
+            set({ isCheckingAuth: false });
+          }
           return;
         }
 
         try {
-          set({ isLoading: true });
+          set({ isLoading: true, isCheckingAuth: true });
           const response = await apiClient.get<{ data: { user: User } }>(
             "/auth/me",
           );
@@ -84,6 +94,7 @@ export const useAuthStore = create<AuthState>()(
             user: response.data.data.user,
             isAuthenticated: true,
             isLoading: false,
+            isCheckingAuth: false,
           });
         } catch (error) {
           console.error("Auth verification failed:", error);
@@ -97,6 +108,7 @@ export const useAuthStore = create<AuthState>()(
           token: null,
           isAuthenticated: false,
           isLoading: false,
+          isCheckingAuth: false,
         });
       },
     }),

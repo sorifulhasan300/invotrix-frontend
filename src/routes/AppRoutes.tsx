@@ -4,9 +4,10 @@ import LoginPage from "@/features/auth/LoginPage";
 import RegisterPage from "@/features/auth/RegisterPage";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { PublicRoute } from "./PublicRoute";
+import { ProductsPage } from "@/features/products/ProductsPage";
 
 const Dashboard = () => <div className="p-6">Dashboard</div>;
-const Products = () => <div className="p-6">Products</div>;
+const Products = () => <ProductsPage />;
 const Sales = () => <div className="p-6">Sales / POS</div>;
 const Login = () => (
   <div>

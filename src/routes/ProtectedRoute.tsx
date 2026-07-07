@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (isLoading) {
+  if (isLoading && !user) {
     return <LoadingSpinner />;
   }
 

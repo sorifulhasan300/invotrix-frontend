@@ -85,11 +85,11 @@ export function EditProductModal({
         sellingPrice: product.sellingPrice,
       });
       setImagePreview(
-        product.productImage
+        product.productImages
           ? `${
               import.meta.env.VITE_API_BASE_URL ||
               "http://localhost:5000/api/v1"
-            }${product.productImage}`
+            }${product.productImages}`
           : null,
       );
       setImageFile(null);
@@ -111,10 +111,10 @@ export function EditProductModal({
   const removeImage = () => {
     setImageFile(null);
     setImagePreview(
-      product.productImage
+      product.productImages
         ? `${
             import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1"
-          }${product.productImage}`
+          }${product.productImages}`
         : null,
     );
   };

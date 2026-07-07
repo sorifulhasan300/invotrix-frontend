@@ -9,7 +9,7 @@ export const PublicRoute = ({ children }: PublicRouteProps) => {
   const token = useAuthStore((state) => state.token);
 
   if (token) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

@@ -77,7 +77,6 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        // 2. Guard: If already loading, or if the user is already fetched, do not repeat the call
         if (currentLoading || currentUser) {
           if (get().isCheckingAuth) {
             set({ isCheckingAuth: false });
@@ -87,15 +86,21 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           set({ isLoading: true, isCheckingAuth: true });
-          const response = await apiClient.get<{ data: { user: User } }>(
-            "/auth/me",
-          );
-          set({
-            user: response.data.data.user,
-            isAuthenticated: true,
-            isLoading: false,
-            isCheckingAuth: false,
-          });
+          const response = await apiClient.get<any>("/auth/me");
+          
+          const userData = response.data?.data?.user || response.data?.data || response.data;
+
+          if (userData && typeof userData === "object" && ("_id" in userData || "email" in userData)) {
+            set({
+              user: userData,
+              isAuthenticated: true,
+              isLoading: false,
+              isCheckingAuth: false,
+            });
+          } else {
+            console.error("Invalid user data structure received:", response.data);
+            get().logout();
+          }
         } catch (error) {
           console.error("Auth verification failed:", error);
           get().logout();

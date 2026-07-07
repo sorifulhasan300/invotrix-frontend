@@ -4,11 +4,12 @@ import LoginPage from "@/features/auth/LoginPage";
 import RegisterPage from "@/features/auth/RegisterPage";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { PublicRoute } from "./PublicRoute";
-import { ProductsPage } from "@/features/products/ProductsPage";
+import { ProductsPage } from "@/features/products/ProductsPage"
+import { PosPage } from "@/features/sales/PosPage"
 
 const Dashboard = () => <div className="p-6">Dashboard</div>;
 const Products = () => <ProductsPage />;
-const Sales = () => <div className="p-6">Sales / POS</div>;
+const Sales = () => <PosPage />;
 const Login = () => (
   <div>
     <LoginPage />

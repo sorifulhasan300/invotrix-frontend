@@ -120,7 +120,7 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
           </button>
 
           {dropdownOpen && user && (
-            <div className="absolute right-0 mt-2 w-56 rounded-[6px] border border-brand-border bg-brand-bg shadow-lg py-1.5 z-50">
+            <div className="absolute right-0 top-full mt-2 w-56 rounded-[6px] border border-brand-border bg-brand-bg shadow-lg py-1.5 z-50">
               <div className="px-3 py-2  ">
                 <div className="flex items-center gap-2">
                   <Avatar className="h-9 w-9">

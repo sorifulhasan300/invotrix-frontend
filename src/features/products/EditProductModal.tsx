@@ -62,6 +62,7 @@ export function EditProductModal({
   const queryClient = useQueryClient();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
 
   const {
     register,
@@ -85,14 +86,10 @@ export function EditProductModal({
         sellingPrice: product.sellingPrice,
       });
       setImagePreview(
-        product.productImages
-          ? `${
-              import.meta.env.VITE_API_BASE_URL ||
-              "http://localhost:5000/api/v1"
-            }${product.productImages}`
-          : null,
+        product.productImages?.[0] ? `${product.productImages[0]}` : null,
       );
       setImageFile(null);
+      setImageRemoved(false);
     }
   }, [product, reset]);
 
@@ -100,6 +97,7 @@ export function EditProductModal({
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
+      setImageRemoved(false);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -110,18 +108,13 @@ export function EditProductModal({
 
   const removeImage = () => {
     setImageFile(null);
-    setImagePreview(
-      product.productImages
-        ? `${
-            import.meta.env.VITE_API_BASE_URL || "https://invotrix-backend.onrender.com/api/v1"
-          }${product.productImages}`
-        : null,
-    );
+    setImagePreview(null);
+    setImageRemoved(true);
   };
 
   const mutation = useMutation({
     mutationFn: async (data: ProductFormData) => {
-      if (imageFile) {
+      if (imageFile || imageRemoved) {
         const formData = new FormData();
         formData.append("name", data.name);
         formData.append("sku", data.sku);
@@ -129,7 +122,11 @@ export function EditProductModal({
         formData.append("stockQuantity", String(data.stockQuantity));
         formData.append("purchasePrice", String(data.purchasePrice));
         formData.append("sellingPrice", String(data.sellingPrice));
-        formData.append("productImages", imageFile);
+        if (imageFile) {
+          formData.append("productImages", imageFile);
+        } else {
+          formData.append("productImages", "");
+        }
 
         return apiClient
           .patch(`/products/${product._id}`, formData, {
@@ -148,6 +145,7 @@ export function EditProductModal({
       reset();
       setImageFile(null);
       setImagePreview(null);
+      setImageRemoved(false);
       onOpenChange(false);
     },
     onError: (error: any) => {
@@ -247,17 +245,17 @@ export function EditProductModal({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="purchasePrice">Buying Price ($)</Label>
+            <Label htmlFor="sellingPrice">Selling Price ($)</Label>
             <Input
-              id="purchasePrice"
+              id="sellingPrice"
               type="number"
               min="0"
               step="0.01"
-              {...register("purchasePrice")}
+              {...register("sellingPrice")}
             />
-            {errors.purchasePrice && (
+            {errors.sellingPrice && (
               <p className="text-sm text-destructive">
-                {errors.purchasePrice.message}
+                {errors.sellingPrice.message}
               </p>
             )}
           </div>
@@ -266,7 +264,12 @@ export function EditProductModal({
             <Label>Product Image</Label>
             <div className="flex items-center gap-4">
               {imagePreview ? (
-                <div className="relative h-16 w-16 overflow-hidden rounded-md border">
+                <div
+                  className="relative h-16 w-16 overflow-hidden rounded-md border cursor-pointer"
+                  onClick={() =>
+                    document.getElementById("editProductImage")?.click()
+                  }
+                >
                   <img
                     src={imagePreview}
                     alt="Preview"
@@ -277,7 +280,10 @@ export function EditProductModal({
                     variant="destructive"
                     size="icon"
                     className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0"
-                    onClick={removeImage}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage();
+                    }}
                   >
                     <X className="h-3 w-3" />
                   </Button>

@@ -276,7 +276,11 @@ export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button
+              className="bg-brand-accent hover:bg-brand-accent-hover text-brand-bg"
+              type="submit"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

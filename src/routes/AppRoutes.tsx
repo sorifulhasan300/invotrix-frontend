@@ -4,20 +4,31 @@ import LoginPage from "@/features/auth/LoginPage";
 import RegisterPage from "@/features/auth/RegisterPage";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { PublicRoute } from "./PublicRoute";
-import { ProductsPage } from "@/features/products/ProductsPage"
-import { PosPage } from "@/features/sales/PosPage"
+import { ProductsPage } from "@/features/products/ProductsPage";
+import { PosPage } from "@/features/sales/PosPage";
+import { DashboardPage } from "@/features/dashboard/DashboardPage";
 
-const Dashboard = () => <div className="p-6">Dashboard</div>;
-const Products = () => <ProductsPage />;
-const Sales = () => <PosPage />;
+const Dashboard = () => (
+  <div className="p-6">
+    <DashboardPage />
+  </div>
+);
+const Products = () => (
+  <div className="p-6">
+    <ProductsPage />
+  </div>
+);
+const Sales = () => (
+  <div className="p-6">
+    <PosPage />
+  </div>
+);
 const Login = () => (
   <div>
     <LoginPage />
   </div>
 );
-const Register = () => (
-  <RegisterPage />
-);
+const Register = () => <RegisterPage />;
 const Unauthorized = () => <div className="p-6">Unauthorized</div>;
 
 const router = createBrowserRouter([

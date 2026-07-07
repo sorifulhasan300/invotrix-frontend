@@ -1,29 +1,29 @@
-import { useState, useMemo } from "react"
-import { useQuery, type QueryFunction } from "@tanstack/react-query"
-import { Plus } from "lucide-react"
+import { useState, useMemo } from "react";
+import { useQuery, type QueryFunction } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
-import { DataTable } from "@/components/ui/data-table"
-import { AddProductModal } from "@/features/products/AddProductModal"
-import { EditProductModal } from "@/features/products/EditProductModal"
-import { DeleteConfirmationModal } from "@/features/products/DeleteConfirmationModal"
-import { getProductColumns } from "@/features/products/productColumns"
-import type { Product } from "@/types/product"
-import apiClient from "@/services/api"
-import { useDebounce } from "@/hooks/useDebounce"
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { DataTable } from "@/components/ui/data-table";
+import { AddProductModal } from "@/features/products/AddProductModal";
+import { EditProductModal } from "@/features/products/EditProductModal";
+import { DeleteConfirmationModal } from "@/features/products/DeleteConfirmationModal";
+import { getProductColumns } from "@/features/products/productColumns";
+import type { Product } from "@/types/product";
+import apiClient from "@/services/api";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface ProductsQueryParams {
-  searchName?: string
-  searchSku?: string
-  searchCategory?: string
-  sortField?: string
-  sortOrder?: string
+  searchName?: string;
+  searchSku?: string;
+  searchCategory?: string;
+  sortField?: string;
+  sortOrder?: string;
 }
 
 const fetchProducts: QueryFunction<Product[]> = async ({ queryKey }) => {
-  const [, params] = queryKey as [string, ProductsQueryParams]
+  const [, params] = queryKey as [string, ProductsQueryParams];
 
   const response = await apiClient.get("/products", {
     params: {
@@ -33,36 +33,36 @@ const fetchProducts: QueryFunction<Product[]> = async ({ queryKey }) => {
       ...(params.sortField && { sortBy: params.sortField }),
       ...(params.sortOrder && { sortOrder: params.sortOrder }),
     },
-  })
+  });
 
-  return response.data.data as Product[]
-}
+  return response.data.data as Product[];
+};
 
 export function ProductsPage() {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
-  const [searchName, setSearchName] = useState("")
-  const [searchSku, setSearchSku] = useState("")
-  const [searchCategory, setSearchCategory] = useState("")
+  const [searchName, setSearchName] = useState("");
+  const [searchSku, setSearchSku] = useState("");
+  const [searchCategory, setSearchCategory] = useState("");
   const [sort, setSort] = useState<{ field: string; order: "asc" | "desc" }>({
     field: "createdAt",
     order: "desc",
-  })
+  });
 
-  const debouncedName = useDebounce(searchName, 500)
-  const debouncedSku = useDebounce(searchSku, 500)
-  const debouncedCategory = useDebounce(searchCategory, 500)
+  const debouncedName = useDebounce(searchName, 500);
+  const debouncedSku = useDebounce(searchSku, 500);
+  const debouncedCategory = useDebounce(searchCategory, 500);
 
   const handleSort = (field: string) => {
     setSort((prev) => {
       if (prev.field === field) {
-        return { field, order: prev.order === "asc" ? "desc" : "asc" }
+        return { field, order: prev.order === "asc" ? "desc" : "asc" };
       }
-      return { field, order: "desc" }
-    })
-  }
+      return { field, order: "desc" };
+    });
+  };
 
   const {
     data: products = [],
@@ -80,7 +80,7 @@ export function ProductsPage() {
       },
     ],
     queryFn: fetchProducts,
-  })
+  });
 
   const columns = useMemo(
     () =>
@@ -91,14 +91,17 @@ export function ProductsPage() {
         sortOrder: sort.order,
         onSort: handleSort,
       }),
-    [sort.field, sort.order]
-  )
+    [sort.field, sort.order],
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-        <Button onClick={() => setIsAddModalOpen(true)}>
+        <Button
+          className="bg-brand-accent hover:bg-brand-accent-hover text-brand-bg"
+          onClick={() => setIsAddModalOpen(true)}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Product
         </Button>
@@ -125,10 +128,7 @@ export function ProductsPage() {
         />
       </div>
 
-      <AddProductModal
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-      />
+      <AddProductModal open={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
 
       <EditProductModal
         open={!!editingProduct}
@@ -171,5 +171,5 @@ export function ProductsPage() {
         <DataTable columns={columns} data={products} />
       )}
     </div>
-  )
+  );
 }

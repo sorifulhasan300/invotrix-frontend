@@ -26,8 +26,7 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   const title = PAGE_TITLES[currentPath] || "Page";
   const lowerTitle = title.toLowerCase();
 
-  const subtitle =
-    LOCATION_HIERARCHY[currentPath]?.label || "Mini ERP";
+  const subtitle = LOCATION_HIERARCHY[currentPath]?.label || "Mini ERP";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -107,7 +106,7 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
 
           {dropdownOpen && (
             <div className="absolute right-0 mt-2 w-56 rounded-[6px] border border-brand-border bg-brand-bg shadow-lg py-1.5 z-50">
-              <div className="px-3 py-2 border-b border-brand-border-subtle">
+              <div className="px-3 py-2  ">
                 <p className="text-[13px] font-medium text-brand-text truncate">
                   {user?.name || "User"}
                 </p>
@@ -117,20 +116,6 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                 <span className="mt-1.5 inline-block px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-brand-accent/10 text-brand-accent">
                   {user?.role || "User"}
                 </span>
-              </div>
-              <div className="py-1">
-                <button
-                  type="button"
-                  className="w-full px-3 py-1.5 text-left text-[12px] text-brand-text-secondary hover:bg-brand-surface hover:text-brand-text transition-colors"
-                >
-                  Profile
-                </button>
-                <button
-                  type="button"
-                  className="w-full px-3 py-1.5 text-left text-[12px] text-brand-text-secondary hover:bg-brand-surface hover:text-brand-text transition-colors"
-                >
-                  Settings
-                </button>
               </div>
             </div>
           )}

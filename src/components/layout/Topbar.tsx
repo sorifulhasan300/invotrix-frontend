@@ -87,7 +87,7 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
           {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
         </button>
 
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative flex items-center" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setDropdownOpen((prev) => !prev)}

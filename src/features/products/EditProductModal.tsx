@@ -113,7 +113,7 @@ export function EditProductModal({
     setImagePreview(
       product.productImages
         ? `${
-            import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1"
+            import.meta.env.VITE_API_BASE_URL || "https://invotrix-backend.onrender.com/api/v1"
           }${product.productImages}`
         : null,
     );

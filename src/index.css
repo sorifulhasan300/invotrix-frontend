@@ -1,3 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -24,6 +29,35 @@
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
     --radius: 0.5rem;
+
+    --brand-bg: 210 40% 99%;
+    --brand-surface: 0 0% 100%;
+    --brand-elevated: 210 40% 97%;
+    --brand-border: 210 20% 90%;
+    --brand-border-subtle: 215 15% 82%;
+    --brand-text: 222 47% 11%;
+    --brand-text-secondary: 215 10% 40%;
+    --brand-text-muted: 215 8% 63%;
+    --brand-accent: 38 85% 40%;
+    --brand-accent-hover: 32 84% 32%;
+    --brand-success: 149 47% 62%;
+    --brand-error: 1 42% 55%;
+    --brand-error-bg: 0 100% 97%;
+    --brand-error-border: 0 50% 90%;
+    --radius: 0.625rem;
+    --chart-1: 222 47% 95%;
+    --chart-2: 215 16% 47%;
+    --chart-3: 215 28% 17%;
+    --chart-4: 215 25% 27%;
+    --chart-5: 215 25% 11%;
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 240 5.9% 10%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 240 5.9% 90%;
+    --sidebar-ring: 240 10% 3.9%;
   }
 
   .dark {
@@ -46,6 +80,63 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+
+    --brand-bg: 210 47% 9%;
+    --brand-surface: 210 47% 11%;
+    --brand-elevated: 210 28% 13%;
+    --brand-border: 210 15% 22%;
+    --brand-border-subtle: 210 16% 18%;
+    --brand-text: 210 20% 93%;
+    --brand-text-secondary: 215 10% 54%;
+    --brand-text-muted: 210 9% 37%;
+    --brand-accent: 33 57% 55%;
+    --brand-accent-hover: 33 60% 48%;
+    --brand-success: 149 47% 62%;
+    --brand-error: 1 42% 55%;
+    --brand-error-bg: 30 47% 13%;
+    --brand-error-border: 30 31% 19%;
+    --chart-1: 222 47% 95%;
+    --chart-2: 215 16% 47%;
+    --chart-3: 215 28% 17%;
+    --chart-4: 215 25% 27%;
+    --chart-5: 215 25% 11%;
+    --sidebar: 240 3.7% 15.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 240 5.9% 10%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 240 4.9% 83.9%;
+  }
+
+  .light {
+    --brand-bg: 210 40% 99%;
+    --brand-surface: 0 0% 100%;
+    --brand-elevated: 210 40% 97%;
+    --brand-border: 210 20% 90%;
+    --brand-border-subtle: 215 15% 82%;
+    --brand-text: 222 47% 11%;
+    --brand-text-secondary: 215 10% 40%;
+    --brand-text-muted: 215 8% 63%;
+    --brand-accent: 38 85% 40%;
+    --brand-accent-hover: 32 84% 32%;
+    --brand-success: 149 47% 62%;
+    --brand-error: 1 42% 55%;
+    --brand-error-bg: 0 100% 97%;
+    --brand-error-border: 0 50% 90%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
@@ -55,6 +146,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
 }

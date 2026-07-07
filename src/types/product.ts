@@ -6,5 +6,5 @@ export type Product = {
   stockQuantity: number;
   purchasePrice: number;
   sellingPrice: number;
-  productImage?: string;
+  productImages?: string;
 };

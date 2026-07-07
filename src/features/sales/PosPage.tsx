@@ -1,45 +1,6 @@
-interface CartItem {
-  product: Product;
-  quantity: number;
-}
-
-interface SalePayload {
-  items: { product: string; quantity: number; sellingPrice: number }[];
-  discount: number;
-  totalAmount: number;
-  customerName?: string;
-  customerPhone?: string;
-  paymentMethod: string;
-}
-
-interface InvoiceData {
-  _id?: string;
-  invoiceNo?: string;
-  items?: Array<{
-    product: string | { _id?: string; name?: string };
-    quantity: number;
-    sellingPrice: number;
-  }>;
-  grandTotal?: number;
-  discount?: number;
-  customerName?: string;
-  customerPhone?: string;
-  paymentMethod?: string;
-  createdAt?: string;
-  [key: string]: any;
-}
-
-interface PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-import { useState, useMemo, useRef, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Search,
@@ -48,7 +9,6 @@ import {
   Trash2,
   Loader2,
   ShoppingCart,
-  Printer,
   User,
   Phone,
   CreditCard,
@@ -67,14 +27,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import type { Product } from "@/types/product";
+import type {
+  CartItem,
+  InvoiceData,
+  PaginationMeta,
+  Product,
+  SalePayload,
+} from "@/types/sales.interface";
 import apiClient from "@/services/api";
 
 interface ProductsResponse {
@@ -99,8 +58,7 @@ const fetchProducts = async (
 };
 
 export function PosPage() {
-  const queryClient = useQueryClient();
-  const receiptRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -111,11 +69,8 @@ export function PosPage() {
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [discount, setDiscount] = useState<number>(0);
   const [isCompletingSale, setIsCompletingSale] = useState(false);
-  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
-  const [activeInvoiceData, setActiveInvoiceData] =
-    useState<InvoiceData | null>(null);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<ProductsResponse>({
     queryKey: ["products", searchQuery, page, pageLimit],
     queryFn: () => fetchProducts(searchQuery, page, pageLimit),
   });
@@ -168,21 +123,6 @@ export function PosPage() {
 
   const totalAmount = Math.max(0, subtotal - discount);
 
-  const getProductName = (
-    product: string | { _id?: string; name?: string },
-  ) => {
-    if (typeof product === "object" && product !== null && product.name) {
-      return product.name;
-    }
-    if (typeof product === "string") {
-      return (
-        products.find((p) => p._id === product)?.name ||
-        `Product ${product.slice(0, 8)}`
-      );
-    }
-    return "Unknown Product";
-  };
-
   const addToCart = (product: Product) => {
     if (product.stockQuantity <= 0) return;
     setCart((prev) => {
@@ -229,17 +169,21 @@ export function PosPage() {
       return response.data.data as InvoiceData;
     },
     onSuccess: (saleData) => {
-      setActiveInvoiceData({
+      const invoiceData: InvoiceData = {
         ...saleData,
         customerName: saleData?.customerName || customerName || "N/A",
         customerPhone: saleData?.customerPhone || customerPhone || "N/A",
-      } as InvoiceData);
-      setIsReceiptOpen(true);
+      };
+      navigate("./receipt", { relative: "path", state: { invoiceData } });
+      setIsCompletingSale(false);
+      setCart([]);
+      setCustomerName("");
+      setCustomerPhone("");
+      setPaymentMethod("Cash");
+      setDiscount(0);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Failed to complete sale");
-    },
-    onSettled: () => {
       setIsCompletingSale(false);
     },
   });
@@ -264,64 +208,6 @@ export function PosPage() {
     };
     completeSale.mutate(payload);
   };
-
-  const handleCloseReceipt = () => {
-    setCart([]);
-    setCustomerName("");
-    setCustomerPhone("");
-    setPaymentMethod("Cash");
-    setDiscount(0);
-    setIsReceiptOpen(false);
-    setActiveInvoiceData(null);
-  };
-
-  const handlePrint = () => {
-    if (!receiptRef.current || !activeInvoiceData) return;
-    const receiptHTML = receiptRef.current.innerHTML;
-    const printWindow = window.open("", "_blank", "width=320,height=600");
-    if (printWindow) {
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Receipt</title>
-            <style>
-              @page { size: 80mm auto; margin: 0; }
-              body { font-family: 'Courier New', monospace; font-size: 12px; margin: 0; padding: 8px; color: #000; }
-              .text-center { text-align: center; }
-              .text-right { text-align: right; }
-              .font-bold { font-weight: bold; }
-              .text-lg { font-size: 16px; }
-              .my-1 { margin-top: 4px; margin-bottom: 4px; }
-              .my-2 { margin-top: 8px; margin-bottom: 8px; }
-              hr { border: none; border-top: 1px dashed #000; margin: 8px 0; }
-              table { width: 100%; border-collapse: collapse; }
-              td, th { padding: 2px 0; vertical-align: top; }
-              .col-item { text-align: left; width: 45%; }
-              .col-qty { text-align: center; width: 15%; }
-              .col-price { text-align: right; width: 20%; }
-              .col-total { text-align: right; width: 20%; }
-            </style>
-          </head>
-          <body>${receiptHTML}</body>
-        </html>
-      `);
-      printWindow.document.close();
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-      }, 200);
-    }
-  };
-
-  const invoiceItems = activeInvoiceData?.items || [];
-  const invoiceSubtotal = invoiceItems.reduce(
-    (sum, item) => sum + item.quantity * item.sellingPrice,
-    0,
-  );
-  const invoiceTotal =
-    activeInvoiceData?.grandTotal ??
-    invoiceSubtotal - (activeInvoiceData?.discount || 0);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-100px)]">
@@ -379,9 +265,9 @@ export function PosPage() {
                       </div>
                     )}
 
-                    {product.productImage ? (
+                    {product.productImages ? (
                       <img
-                        src={product.productImage}
+                        src={product.productImages[0]}
                         alt={product.name}
                         className="h-32 w-full object-cover"
                       />
@@ -644,112 +530,6 @@ export function PosPage() {
         </Card>
       </div>
 
-      <Dialog open={isReceiptOpen} onOpenChange={setIsReceiptOpen}>
-        <DialogContent className="!max-w-[360px] sm:!max-w-[360px]">
-          <DialogHeader>
-            <DialogTitle>Receipt</DialogTitle>
-          </DialogHeader>
-
-          {activeInvoiceData && (
-            <div
-              ref={receiptRef}
-              className="font-mono text-xs border rounded-md p-4 bg-white text-black"
-            >
-            <div className="text-center">
-              <h2 className="text-lg font-bold">Invotrix ERP</h2>
-              <p className="my-1">Dhaka, Bangladesh</p>
-              <p>Tel: +880 1XXX-XXXXXX</p>
-              <p className="my-1">
-                {activeInvoiceData?.createdAt
-                  ? new Date(activeInvoiceData.createdAt).toLocaleString()
-                  : new Date().toLocaleString()}
-              </p>
-              <p className="font-bold">
-                Invoice:{" "}
-                {activeInvoiceData?.invoiceNo ||
-                  activeInvoiceData?._id ||
-                  "N/A"}
-              </p>
-            </div>
-
-            <hr />
-
-            <div className="my-2">
-              <p>Customer: {activeInvoiceData.customerName}</p>
-              <p>Phone: {activeInvoiceData.customerPhone}</p>
-            </div>
-
-            <hr />
-
-            <table className="my-2 w-full">
-              <thead>
-                <tr>
-                  <th className="col-item text-left">Item</th>
-                  <th className="col-qty text-center">Qty</th>
-                  <th className="col-price text-right">Price</th>
-                  <th className="col-total text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoiceItems.map((item, idx) => (
-                  <tr key={idx}>
-                    <td className="col-item">{getProductName(item.product)}</td>
-                    <td className="col-qty text-center">{item.quantity}</td>
-                    <td className="col-price text-right">
-                      ${item.sellingPrice.toFixed(2)}
-                    </td>
-                    <td className="col-total text-right">
-                      ${(item.quantity * item.sellingPrice).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <hr />
-
-            <div className="my-1 flex justify-between">
-              <span>Subtotal</span>
-              <span>${invoiceSubtotal.toFixed(2)}</span>
-            </div>
-
-            {activeInvoiceData?.discount ? (
-              <div className="my-1 flex justify-between">
-                <span>Discount</span>
-                <span>-${Number(activeInvoiceData.discount).toFixed(2)}</span>
-              </div>
-            ) : null}
-
-            <div className="my-2 flex justify-between font-bold text-sm">
-              <span>Grand Total</span>
-              <span>${invoiceTotal.toFixed(2)}</span>
-            </div>
-
-            <hr />
-
-            <div className="text-center my-2">
-              <p className="font-bold">Thank you for shopping with us!</p>
-              <p>Visit again</p>
-            </div>
-            </div>
-          )}
-
-          <DialogFooter className="flex gap-2 sm:gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={handlePrint}
-              disabled={!activeInvoiceData}
-            >
-              <Printer className="mr-2 h-4 w-4" />
-              Print Receipt
-            </Button>
-            <Button className="flex-1" onClick={handleCloseReceipt}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

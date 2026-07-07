@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import LoginPage from "@/features/auth/LoginPage";
 import RegisterPage from "@/features/auth/RegisterPage";
@@ -7,6 +7,7 @@ import { PublicRoute } from "./PublicRoute";
 import { ProductsPage } from "@/features/products/ProductsPage";
 import { PosPage } from "@/features/sales/PosPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { ReceiptPage } from "@/features/sales/ReceiptPage";
 
 const Dashboard = () => (
   <div className="p-6">
@@ -20,7 +21,12 @@ const Products = () => (
 );
 const Sales = () => (
   <div className="p-6">
-    <PosPage />
+    <Outlet />
+  </div>
+);
+const Receipt = () => (
+  <div className="p-6">
+    <ReceiptPage />
   </div>
 );
 const Login = () => (
@@ -79,6 +85,16 @@ const router = createBrowserRouter([
             <Sales />
           </ProtectedRoute>
         ),
+        children: [
+          {
+            index: true,
+            element: <PosPage />,
+          },
+          {
+            path: "receipt",
+            element: <Receipt />,
+          },
+        ],
       },
     ],
   },

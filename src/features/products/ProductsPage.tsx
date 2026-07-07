@@ -1,45 +1,145 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useQuery, type QueryFunction } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Input } from "@/components/ui/input"
 import { DataTable } from "@/components/ui/data-table"
 import { AddProductModal } from "@/features/products/AddProductModal"
-import { columns } from "@/features/products/productColumns"
+import { EditProductModal } from "@/features/products/EditProductModal"
+import { DeleteConfirmationModal } from "@/features/products/DeleteConfirmationModal"
+import { getProductColumns } from "@/features/products/productColumns"
 import type { Product } from "@/types/product"
 import apiClient from "@/services/api"
+import { useDebounce } from "@/hooks/useDebounce"
 
-const fetchProducts: QueryFunction<Product[]> = async () => {
-  const response = await apiClient.get("/products")
+interface ProductsQueryParams {
+  searchName?: string
+  searchSku?: string
+  searchCategory?: string
+  sortField?: string
+  sortOrder?: string
+}
+
+const fetchProducts: QueryFunction<Product[]> = async ({ queryKey }) => {
+  const [, params] = queryKey as [string, ProductsQueryParams]
+
+  const response = await apiClient.get("/products", {
+    params: {
+      ...(params.searchName && { name: params.searchName }),
+      ...(params.searchSku && { sku: params.searchSku }),
+      ...(params.searchCategory && { category: params.searchCategory }),
+      ...(params.sortField && { sortBy: params.sortField }),
+      ...(params.sortOrder && { sortOrder: params.sortOrder }),
+    },
+  })
+
   return response.data.data as Product[]
 }
 
 export function ProductsPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
+
+  const [searchName, setSearchName] = useState("")
+  const [searchSku, setSearchSku] = useState("")
+  const [searchCategory, setSearchCategory] = useState("")
+  const [sort, setSort] = useState<{ field: string; order: "asc" | "desc" }>({
+    field: "createdAt",
+    order: "desc",
+  })
+
+  const debouncedName = useDebounce(searchName, 500)
+  const debouncedSku = useDebounce(searchSku, 500)
+  const debouncedCategory = useDebounce(searchCategory, 500)
+
+  const handleSort = (field: string) => {
+    setSort((prev) => {
+      if (prev.field === field) {
+        return { field, order: prev.order === "asc" ? "desc" : "asc" }
+      }
+      return { field, order: "desc" }
+    })
+  }
 
   const {
     data: products = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["products"],
+    queryKey: [
+      "products",
+      {
+        searchName: debouncedName,
+        searchSku: debouncedSku,
+        searchCategory: debouncedCategory,
+        sortField: sort.field,
+        sortOrder: sort.order,
+      },
+    ],
     queryFn: fetchProducts,
   })
+
+  const columns = useMemo(
+    () =>
+      getProductColumns({
+        onEdit: (product) => setEditingProduct(product),
+        onDelete: (product) => setDeletingProduct(product),
+        sortBy: sort.field,
+        sortOrder: sort.order,
+        onSort: handleSort,
+      }),
+    [sort.field, sort.order]
+  )
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button onClick={() => setIsAddModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Product
         </Button>
       </div>
 
+      <div className="flex flex-wrap items-center gap-4">
+        <Input
+          placeholder="Search name..."
+          value={searchName}
+          onChange={(e) => setSearchName(e.target.value)}
+          className="max-w-[200px]"
+        />
+        <Input
+          placeholder="Search SKU..."
+          value={searchSku}
+          onChange={(e) => setSearchSku(e.target.value)}
+          className="max-w-[200px]"
+        />
+        <Input
+          placeholder="Search category..."
+          value={searchCategory}
+          onChange={(e) => setSearchCategory(e.target.value)}
+          className="max-w-[200px]"
+        />
+      </div>
+
       <AddProductModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+      />
+
+      <EditProductModal
+        open={!!editingProduct}
+        onOpenChange={(open) => !open && setEditingProduct(null)}
+        product={editingProduct!}
+      />
+
+      <DeleteConfirmationModal
+        open={!!deletingProduct}
+        onOpenChange={(open) => !open && setDeletingProduct(null)}
+        product={deletingProduct}
       />
 
       {error && (
@@ -68,11 +168,7 @@ export function ProductsPage() {
           </div>
         </div>
       ) : (
-        <DataTable
-          columns={columns}
-          data={products}
-          searchKey="name"
-        />
+        <DataTable columns={columns} data={products} />
       )}
     </div>
   )

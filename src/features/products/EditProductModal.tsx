@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { X, UploadCloud, Loader2 } from "lucide-react";
+import { X, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import apiClient from "@/services/api";
+import type { Product } from "@/types/product";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -38,9 +39,10 @@ const productSchema = z.object({
 
 type ProductFormData = z.infer<typeof productSchema>;
 
-interface AddProductModalProps {
+interface EditProductModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  product: Product;
 }
 
 const categories = [
@@ -52,7 +54,11 @@ const categories = [
   "Other",
 ];
 
-export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
+export function EditProductModal({
+  open,
+  onOpenChange,
+  product,
+}: EditProductModalProps) {
   const queryClient = useQueryClient();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -61,19 +67,34 @@ export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
     register,
     handleSubmit,
     reset,
+    getValues,
     formState: { errors, isSubmitting },
     setValue,
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: "",
-      sku: "",
-      category: "",
-      stockQuantity: 0,
-      purchasePrice: 0,
-      sellingPrice: 0,
-    },
   });
+
+  useEffect(() => {
+    if (product) {
+      reset({
+        name: product.name,
+        sku: product.sku,
+        category: product.category,
+        stockQuantity: product.stockQuantity,
+        purchasePrice: product.purchasePrice,
+        sellingPrice: product.sellingPrice,
+      });
+      setImagePreview(
+        product.productImage
+          ? `${
+              import.meta.env.VITE_API_BASE_URL ||
+              "http://localhost:5000/api/v1"
+            }${product.productImage}`
+          : null,
+      );
+      setImageFile(null);
+    }
+  }, [product, reset]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -89,36 +110,48 @@ export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
 
   const removeImage = () => {
     setImageFile(null);
-    setImagePreview(null);
+    setImagePreview(
+      product.productImage
+        ? `${
+            import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1"
+          }${product.productImage}`
+        : null,
+    );
   };
 
   const mutation = useMutation({
     mutationFn: async (data: ProductFormData) => {
-      const formData = new FormData();
-      formData.append("name", data.name);
-      formData.append("sku", data.sku);
-      formData.append("category", data.category);
-      formData.append("stockQuantity", String(data.stockQuantity));
-      formData.append("purchasePrice", String(data.purchasePrice));
-      formData.append("sellingPrice", String(data.sellingPrice));
       if (imageFile) {
+        const formData = new FormData();
+        formData.append("name", data.name);
+        formData.append("sku", data.sku);
+        formData.append("category", data.category);
+        formData.append("stockQuantity", String(data.stockQuantity));
+        formData.append("purchasePrice", String(data.purchasePrice));
+        formData.append("sellingPrice", String(data.sellingPrice));
         formData.append("productImages", imageFile);
+
+        return apiClient
+          .patch(`/products/${product._id}`, formData, {
+            headers: { "Content-Type": undefined },
+          })
+          .then((res) => res.data);
       }
 
-      const response = await apiClient.post("/products", formData, {
-        headers: { "Content-Type": undefined },
-      });
-      return response.data;
+      return apiClient
+        .patch(`/products/${product._id}`, data)
+        .then((res) => res.data);
     },
     onSuccess: () => {
-      toast.success("Product added successfully");
+      toast.success("Product updated successfully");
       queryClient.invalidateQueries({ queryKey: ["products"] });
       reset();
-      removeImage();
+      setImageFile(null);
+      setImagePreview(null);
       onOpenChange(false);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to create product");
+      toast.error(error.response?.data?.message || "Failed to update product");
     },
   });
 
@@ -130,9 +163,9 @@ export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
+          <DialogTitle>Edit Product</DialogTitle>
           <DialogDescription>
-            Fill in the details below to add a new product to your inventory.
+            Update the product details below.
           </DialogDescription>
         </DialogHeader>
 
@@ -161,7 +194,7 @@ export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
             <Label htmlFor="category">Category</Label>
             <Select
               onValueChange={(value) => setValue("category", value)}
-              defaultValue=""
+              value={getValues("category")}
             >
               <SelectTrigger id="category">
                 <SelectValue placeholder="Select a category" />
@@ -214,17 +247,17 @@ export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="sellingPrice">Selling Price ($)</Label>
+            <Label htmlFor="purchasePrice">Buying Price ($)</Label>
             <Input
-              id="sellingPrice"
+              id="purchasePrice"
               type="number"
               min="0"
               step="0.01"
-              {...register("sellingPrice")}
+              {...register("purchasePrice")}
             />
-            {errors.sellingPrice && (
+            {errors.purchasePrice && (
               <p className="text-sm text-destructive">
-                {errors.sellingPrice.message}
+                {errors.purchasePrice.message}
               </p>
             )}
           </div>
@@ -251,7 +284,7 @@ export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
                 </div>
               ) : (
                 <label
-                  htmlFor="productImage"
+                  htmlFor="editProductImage"
                   className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-muted-foreground/50 hover:border-muted-foreground"
                 >
                   <UploadCloud className="mb-2 h-8 w-8 text-muted-foreground" />
@@ -259,7 +292,7 @@ export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
                     Upload Image
                   </span>
                   <input
-                    id="productImage"
+                    id="editProductImage"
                     type="file"
                     accept="image/*"
                     className="sr-only"
@@ -277,14 +310,7 @@ export function AddProductModal({ open, onOpenChange }: AddProductModalProps) {
               </Button>
             </DialogClose>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Product uploading...
-                </>
-              ) : (
-                "Add Product"
-              )}
+              {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </form>

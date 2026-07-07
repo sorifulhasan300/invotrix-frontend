@@ -26,9 +26,10 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters."),
   profileImage: z
     .instanceof(FileList)
+    .optional()
     .refine(
       (files) =>
-        files.length === 0 ||
+        !files || files.length === 0 ||
         ["image/png", "image/jpeg", "image/jpg"].includes(files[0].type),
       "Only PNG and JPEG images are allowed."
     ),

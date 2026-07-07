@@ -244,6 +244,17 @@ const LoginPage = () => {
                 )}
               </button>
             </form>
+
+            <p className="text-center text-[13px] text-brand-text-muted mt-5">
+              Don't have an account?{" "}
+              <button
+                type="button"
+                onClick={() => navigate("/register")}
+                className="text-brand-accent hover:underline font-medium"
+              >
+                Sign up
+              </button>
+            </p>
           </div>
 
           <p className="text-[12px] text-brand-text-muted">

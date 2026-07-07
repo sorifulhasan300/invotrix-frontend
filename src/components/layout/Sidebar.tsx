@@ -27,12 +27,19 @@ const Sidebar = ({
   isOpen: boolean;
   onClose?: () => void;
 }) => {
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
 
   const handleLogout = () => {
     logout();
     if (onClose) onClose();
   };
+
+  const filteredItems = SIDEBAR_ITEMS.filter((item) => {
+    if (user?.role?.toLowerCase() === "employee") {
+      return item.to === "/sales";
+    }
+    return true;
+  });
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
@@ -49,7 +56,7 @@ const Sidebar = ({
       </div>
 
       <nav className="flex-1 px-3 py-2 space-y-1">
-        {SIDEBAR_ITEMS.map((item) => (
+        {filteredItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

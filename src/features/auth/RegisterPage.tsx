@@ -51,6 +51,7 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<"Admin" | "Manager" | "Employee">("Employee");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -70,6 +71,7 @@ const RegisterPage = () => {
       formData.append("name", data.name);
       formData.append("email", data.email);
       formData.append("password", data.password);
+      formData.append("role", selectedRole);
       if (data.profileImage && data.profileImage[0]) {
         formData.append("profileImage", data.profileImage[0]);
       }
@@ -352,6 +354,28 @@ const RegisterPage = () => {
                     {errors.password.message}
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-[13px] text-brand-text-secondary mb-1.5 font-normal">
+                  Select Workspace Role
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["Admin", "Manager", "Employee"] as const).map((role) => (
+                    <button
+                      key={role}
+                      type="button"
+                      onClick={() => setSelectedRole(role)}
+                      className={`h-10 rounded-[6px] border text-[13px] font-medium transition-all ${
+                        selectedRole === role
+                          ? "bg-brand-accent border-brand-accent text-brand-bg"
+                          : "border-brand-border-subtle bg-brand-surface text-brand-text-secondary hover:text-brand-text hover:bg-brand-elevated"
+                      }`}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <button

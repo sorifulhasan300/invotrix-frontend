@@ -23,15 +23,12 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const fetchCurrentUser = useAuthStore((state) => state.fetchCurrentUser);
   const location = useLocation();
 
-  // ✅ Hook ALWAYS called first, no early return before this.
   useEffect(() => {
     if (token && !user && !isLoading) {
       fetchCurrentUser();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, !!user, isLoading]);
 
-  // ---- All conditional returns happen AFTER hooks ----
 
   if (!token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -50,6 +47,9 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
       .map((r) => r.toLowerCase())
       .includes(user.role.toLowerCase());
     if (!hasRole) {
+      if (user.role.toLowerCase() === "employee") {
+        return <Navigate to="/sales" replace />;
+      }
       return <Navigate to="/unauthorized" replace />;
     }
   }

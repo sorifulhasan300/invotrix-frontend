@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import LoginPage from "@/features/auth/LoginPage";
 import RegisterPage from "@/features/auth/RegisterPage";
+import UnauthorizedPage from "@/features/auth/UnauthorizedPage";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { PublicRoute } from "./PublicRoute";
 import { ProductsPage } from "@/features/products/ProductsPage";
@@ -35,7 +36,6 @@ const Login = () => (
   </div>
 );
 const Register = () => <RegisterPage />;
-const Unauthorized = () => <div className="p-6">Unauthorized</div>;
 
 const router = createBrowserRouter([
   {
@@ -56,7 +56,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/unauthorized",
-    element: <Unauthorized />,
+    element: <UnauthorizedPage />,
   },
   {
     path: "/",
@@ -65,7 +65,7 @@ const router = createBrowserRouter([
       {
         index: true,
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "manager"]}>
             <Dashboard />
           </ProtectedRoute>
         ),
@@ -73,7 +73,7 @@ const router = createBrowserRouter([
       {
         path: "products",
         element: (
-          <ProtectedRoute allowedRoles={["admin", "staff"]}>
+          <ProtectedRoute allowedRoles={["admin", "manager"]}>
             <Products />
           </ProtectedRoute>
         ),
@@ -81,7 +81,7 @@ const router = createBrowserRouter([
       {
         path: "sales",
         element: (
-          <ProtectedRoute allowedRoles={["admin", "staff", "manager"]}>
+          <ProtectedRoute allowedRoles={["admin", "manager", "employee"]}>
             <Sales />
           </ProtectedRoute>
         ),

@@ -34,10 +34,10 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginResponse {
   user: {
-    id: string;
+    _id: string;
     email: string;
     name: string;
-    role: "admin" | "staff" | "manager";
+    role: "Admin" | "Manager" | "Employee";
   };
   token: string;
 }
